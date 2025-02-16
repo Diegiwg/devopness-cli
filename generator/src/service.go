@@ -40,9 +40,18 @@ func (spec *Spec) ParseServices() {
 
 func (spec *Spec) GenerateServices() {
 	for service, operations := range spec.Services {
+		importModels := false
+		for _, op := range operations {
+			if op.RequestBody != "" {
+				importModels = true
+				break
+			}
+		}
+
 		data := map[string]interface{}{
-			"Service":    service,
-			"Operations": operations,
+			"Service":      service,
+			"Operations":   operations,
+			"ImportModels": importModels,
 		}
 
 		TemplateToFile("generator/templates/service.tmpl", "generated/services/"+service+".go", data)

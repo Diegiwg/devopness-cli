@@ -2,7 +2,9 @@ package service
 
 import (
 	"github.com/diegiwg/devopness-cli/core"
+	{{- if .ImportModels }}
 	model "github.com/diegiwg/devopness-cli/generated/models"
+	{{- end }}
 )
 
 type {{ .Service }} struct{}

@@ -38,9 +38,9 @@ type {{ .Model.Name }} []{{ .Model.ArrayType }}
 type {{ .Model.Name }} struct{
     {{- range .Model.Properties }}
         {{- if .Ref }}
-            {{ camelcase .Name }} {{ .Ref }}
+            {{ camelcase .Name }} {{ .Ref }} `json:"{{ .Name }}"`
         {{- else }}
-            {{ camelcase .Name }} {{ .Type }}
+            {{ camelcase .Name }} {{ .Type }} `json:"{{ .Name }}"`
         {{- end }}
     {{- end}}
 }

@@ -93,9 +93,9 @@ func (spec *Spec) ParseObjectProperty(name string, sModel SpecModel) ModelProper
 
 	switch sModel.Type {
 	case "object":
-		prop.Type = "interface{} // object"
+		prop.Type = "interface{}"
 	case "array":
-		prop.Type = "[]interface{} // array"
+		prop.Type = "[]interface{}"
 	case "string":
 		prop.Type = "string"
 	case "integer":
@@ -109,7 +109,7 @@ func (spec *Spec) ParseObjectProperty(name string, sModel SpecModel) ModelProper
 		println("Skipping model: " + name)
 		println("    Type: " + sModel.Type)
 
-		prop.Type = "interface{} // unknown"
+		prop.Type = "interface{}"
 	}
 
 	// TODO: proper handler this props
