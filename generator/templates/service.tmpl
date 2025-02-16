@@ -8,8 +8,12 @@ type {{ .Service }} struct{}
 
 {{ range .Operations }}
 // {{ .Summary }}
-func (s *{{ $.Service }}) {{ capitalize .OperationId }} (ctx *core.Context) string {
-    rawResponse, err := ctx.Client.{{ capitalize .Method }}("{{ .Path }}", nil)
+func (s *{{ $.Service }}) {{ capitalize .OperationId }} (ctx *core.Context, {{ renderArguments .Arguments ", " }}) string {
+    var body = make(map[string]string)
+	{{ range .Arguments }}
+	body["{{ . }}"] = _{{ . }}{{ end }}
+	
+	rawResponse, err := ctx.Client.{{ capitalize .Method }}("{{ .Path }}", body)
 	if err != nil {
 		panic(err)
 	}

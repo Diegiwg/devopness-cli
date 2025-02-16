@@ -9,23 +9,38 @@ import (
 	"text/template"
 )
 
+type SpecRequestBody struct{
+	Content map[string]struct {
+		Schema struct {
+			Ref string `json:"$ref"`
+		} `json:"schema"`
+	} `json:"content"`
+}
+
 type SpecOperation struct {
 	Summary     string   `json:"summary"`
 	OperationId string   `json:"operationId"`
 	Tags        []string `json:"tags"`
 	// Parameters  []struct{}          `json:"parameters"`
 	// Responses   map[string]struct{} `json:"responses"`
+	RequestBody SpecRequestBody `json:"requestBody,omitempty"`
 
-	Path string
+	Path   string
 	Method string
+	Arguments []string
 }
 
 type Spec struct {
-	Paths         map[string]map[string]SpecOperation `json:"paths"`
+	Paths map[string]map[string]SpecOperation `json:"paths"`
+
 	ServiceGroups []struct {
 		Name string   `json:"name"`
 		Tags []string `json:"tags"`
 	} `json:"x-tagGroups"`
+
+	Components struct {
+		Schemas map[string]interface{} `json:"schemas"`
+	} `json:"components"`
 
 	Services     map[string][]SpecOperation
 	TagToService map[string]string
@@ -64,6 +79,8 @@ func (spec *Spec) parseServices() {
 		for method, _ := range methods {
 			model := spec.Paths[path][method]
 
+			model.Arguments = spec.GetArguments(model)
+
 			model.Path = path
 			model.Method = method
 
@@ -100,6 +117,36 @@ func (spec *Spec) generateServices() {
 	}
 }
 
+func (spec *Spec) GetArguments(operation SpecOperation) []string {
+	var arguments []string
+
+	if operation.RequestBody.Content == nil {
+		return arguments
+	}
+
+	for _, content := range operation.RequestBody.Content {
+		ref := strings.Replace(content.Schema.Ref, "#/components/schemas/", "", 1)
+
+		schema := spec.Components.Schemas[ref]
+
+		if schema == nil {
+			println("Schema not found: " + ref)
+			continue
+		}
+
+		schemaMap := schema.(map[string]interface{})
+
+		properties := schemaMap["properties"].(map[string]interface{})
+
+		for name, _ := range properties {
+			arguments = append(arguments, name)
+		}
+	}
+
+	return arguments
+}
+
+
 func TemplateToFile(templatePath string, filePath string, data interface{}) {
 	functions := template.FuncMap{
 		"capitalize": func(s string) string {
@@ -107,6 +154,16 @@ func TemplateToFile(templatePath string, filePath string, data interface{}) {
 				return s
 			}
 			return strings.ToUpper(string(s[0])) + s[1:]
+		},
+
+		"renderArguments": func(arguments []string, separator string) string {
+			var result string
+
+			for _, argument := range arguments {
+				result += "_" + argument + " string" + separator
+			}
+
+			return strings.TrimSuffix(result, separator)
 		},
 	}
 
