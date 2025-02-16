@@ -1,4 +1,4 @@
-dev:
+dev: build
 	go run devopness.go ${ARGS}
 
 build:
