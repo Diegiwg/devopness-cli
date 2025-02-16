@@ -8,12 +8,10 @@ import (
 
 type Project struct{}
 
-type DevopnessProject struct {
+type ProjectListResponse []struct {
 	Id   int    `json:"id"`
 	Name string `json:"name"`
 }
-
-type ProjectListResponse []DevopnessProject
 
 func (r *ProjectListResponse) Dump() {
 	prettyJSON, err := json.MarshalIndent(r, "", "  ")
@@ -24,6 +22,7 @@ func (r *ProjectListResponse) Dump() {
 	println(string(prettyJSON))
 }
 
+// List retrieves a list of all projects associated with the authenticated user.
 func (p *Project) List(ctx *core.Context) ProjectListResponse {
 	rawResponse, err := ctx.Client.Get("/projects", nil)
 	if err != nil {

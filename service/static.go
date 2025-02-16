@@ -32,6 +32,17 @@ func (r *CredentialOptionsResponse) Dump() {
 	println(string(prettyJSON))
 }
 
+// CredentialOptions retrieves the list of supported credential types and their
+// configurations from the API.
+//
+// The method returns a CredentialOptionsResponse object which contains the
+// following fields:
+//
+//	ProviderTypes: A list of supported provider types, each containing a
+//	  "type" and a "type_human_readable" field.
+//
+//	SupportedProviders: A list of supported providers, each containing a
+//	  "code", "name", "hint", "type", and "type_human_readable" field.
 func (r *Static) CredentialOptions(ctx *core.Context) CredentialOptionsResponse {
 	rawResponse, err := ctx.Client.Get("/static/credential-options", nil)
 	if err != nil {
