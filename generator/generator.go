@@ -100,18 +100,6 @@ func (spec *Spec) generateServices() {
 	}
 }
 
-func main() {
-	println("Devopness CLI Generator")
-
-	spec := LoadSpecFromFile("generator/spec.json")
-	spec.parseServices()
-
-	os.RemoveAll("generated")
-	os.MkdirAll("generated", os.ModePerm)
-
-	spec.generateServices()
-}
-
 func TemplateToFile(templatePath string, filePath string, data interface{}) {
 	functions := template.FuncMap{
 		"capitalize": func(s string) string {
@@ -140,4 +128,16 @@ func TemplateToFile(templatePath string, filePath string, data interface{}) {
 	if err != nil {
 		panic(err)
 	}
+}
+
+func main() {
+	println("Devopness CLI Generator")
+
+	spec := LoadSpecFromFile("generator/spec.json")
+	spec.parseServices()
+
+	os.RemoveAll("generated")
+	os.MkdirAll("generated", os.ModePerm)
+
+	spec.generateServices()
 }
