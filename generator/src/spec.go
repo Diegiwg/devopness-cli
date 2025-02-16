@@ -5,21 +5,22 @@ import (
 	"os"
 )
 
-type SpecRequestBody struct {
+type SpecInnerRef struct {
 	Content map[string]struct {
 		Schema struct {
-			Ref string `json:"$ref"`
+			Type string `json:"type"`
+			Ref  string `json:"$ref"`
 		} `json:"schema"`
 	} `json:"content"`
 }
 
 type SpecOperation struct {
-	Summary     string   `json:"summary"`
-	OperationId string   `json:"operationId"`
-	Tags        []string `json:"tags"`
+	Summary     string                  `json:"summary"`
+	OperationId string                  `json:"operationId"`
+	Tags        []string                `json:"tags"`
+	Responses   map[string]SpecInnerRef `json:"responses"`
+	RequestBody SpecInnerRef            `json:"requestBody,omitempty"`
 	// Parameters  []struct{}          `json:"parameters"`
-	// Responses   map[string]struct{} `json:"responses"`
-	RequestBody SpecRequestBody `json:"requestBody,omitempty"`
 }
 
 type Spec struct {

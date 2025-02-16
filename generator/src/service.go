@@ -5,11 +5,16 @@ import (
 )
 
 type ServiceOperation struct {
-	Path        string
-	Method      string
-	Summary     string
-	OperationId string
-	RequestBody string
+	Path           string
+	Method         string
+	Summary        string
+	OperationId    string
+	RequestBody    string
+	RequestReturns []struct {
+		Type string
+		Code string
+	}
+	RequestReturnsTypes []string
 }
 
 func (spec *Spec) ParseServices() {
@@ -24,7 +29,9 @@ func (spec *Spec) ParseServices() {
 			model := spec.Paths[path][method]
 			service.Summary = model.Summary
 			service.OperationId = model.OperationId
-			service.RequestBody = spec.GetArguments(model)
+
+			service.RequestBody = spec.GetRequestBody(model)
+			service.RequestReturnsTypes, service.RequestReturns = spec.GetRequestReturns(model)
 
 			serviceId := spec.TagToService[model.Tags[0]]
 			if serviceId == "" {
@@ -46,6 +53,13 @@ func (spec *Spec) GenerateServices() {
 				importModels = true
 				break
 			}
+
+			for _, Type := range op.RequestReturnsTypes {
+				if Type != "string" {
+					importModels = true
+					break
+				}
+			}
 		}
 
 		data := map[string]interface{}{
@@ -58,7 +72,7 @@ func (spec *Spec) GenerateServices() {
 	}
 }
 
-func (spec *Spec) GetArguments(operation SpecOperation) string {
+func (spec *Spec) GetRequestBody(operation SpecOperation) string {
 	if operation.RequestBody.Content == nil {
 		return ""
 	}
@@ -68,4 +82,64 @@ func (spec *Spec) GetArguments(operation SpecOperation) string {
 	}
 
 	return ""
+}
+
+func (spec *Spec) GetRequestReturns(operation SpecOperation) ([]string, []struct {
+	Type string
+	Code string
+}) {
+	returns := make(map[string][]string)
+
+	for code, ref := range operation.Responses {
+		if ref.Content == nil {
+			continue
+		}
+
+		for _, content := range ref.Content {
+			if code == "204" {
+				continue
+			}
+
+			if content.Schema.Type == "string" {
+				returns["string"] = append(returns["string"], code)
+				continue
+			}
+
+			// Assign the type as "model.<ref>" (if applicable)
+			Type := "model." + spec.parseRef(content.Schema.Ref)
+			returns[Type] = append(returns[Type], code)
+		}
+	}
+
+	if len(returns) == 0 {
+		return nil, nil
+	}
+
+	typeWithCode := make([]struct {
+		Type string
+		Code string
+	}, 0, len(returns))
+
+	uniqueTypes := make(map[string]struct{})
+
+	for Type, codes := range returns {
+		for _, code := range codes {
+			uniqueTypes[Type] = struct{}{}
+
+			typeWithCode = append(typeWithCode, struct {
+				Type string
+				Code string
+			}{
+				Type: Type,
+				Code: code,
+			})
+		}
+	}
+
+	onlyTypes := make([]string, 0, len(uniqueTypes))
+	for typeName := range uniqueTypes {
+		onlyTypes = append(onlyTypes, typeName)
+	}
+
+	return onlyTypes, typeWithCode
 }

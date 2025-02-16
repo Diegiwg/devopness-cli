@@ -11,7 +11,6 @@ func TemplateToFile(templatePath string, filePath string, data interface{}) {
 	functions := template.FuncMap{
 		"capitalize": Capitalize,
 		"camelcase": CamelCase,
-		"renderArguments": RenderArgs,
 	}
 
 	templateName := filepath.Base(templatePath)

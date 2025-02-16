@@ -11,16 +11,17 @@ type {{ .Service }} struct{}
 
 {{ range .Operations }}
 // {{ .Summary }}
-func (s *{{ $.Service }}) {{ capitalize .OperationId }} (ctx *core.Context{{- if .RequestBody }}, body model.{{ .RequestBody }} {{ end }}) string {
+func (s *{{ $.Service }}) {{ capitalize .OperationId }} (ctx *core.Context{{- if .RequestBody }}, body model.{{ .RequestBody }} {{ end }}) ({{ range .RequestReturnsTypes }} *{{ . }}, {{ end }}) {
 	{{- if (eq .RequestBody "") }}
 	var body interface{} = nil
 	{{- end }}
 
-	rawResponse, err := ctx.Client.{{ capitalize .Method }}("{{ .Path }}", body)
-	if err != nil {
-		panic(err)
-	}
+	responseCode, respondeBody := ctx.Client.{{ capitalize .Method }}("{{ .Path }}", body)
 
-    return rawResponse
+	{{- range .RequestReturns }}
+	if responseCode == {{ .Code }} {
+		return &model.{{ .Type }}{}, nil
+	}
+	{{- end }}
 }
 {{ end }}
