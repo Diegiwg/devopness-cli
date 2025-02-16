@@ -1,0 +1,8 @@
+package service
+
+type {{ camelCase .Service }} struct{}
+
+{{ range .Operations }}
+// {{ .Summary }}
+func (s *{{ camelCase $.Service }}) {{ capitalize .OperationId }} () {}
+{{ end }}
