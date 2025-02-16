@@ -1,8 +1,19 @@
 package service
 
+import (
+	"github.com/diegiwg/devopness-cli/core"
+)
+
 type {{ .Service }} struct{}
 
 {{ range .Operations }}
 // {{ .Summary }}
-func (s *{{ $.Service }}) {{ capitalize .OperationId }} () {}
+func (s *{{ $.Service }}) {{ capitalize .OperationId }} (ctx *core.Context) string {
+    rawResponse, err := ctx.Client.{{ capitalize .Method }}("{{ .Path }}", nil)
+	if err != nil {
+		panic(err)
+	}
+
+    return rawResponse
+}
 {{ end }}

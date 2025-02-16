@@ -1,10 +1,11 @@
 package cmd
 
 import (
+	"encoding/json"
 	"fmt"
 
 	"github.com/diegiwg/devopness-cli/core"
-	"github.com/diegiwg/devopness-cli/service"
+	service "github.com/diegiwg/devopness-cli/generated"
 	"github.com/spf13/cobra"
 )
 
@@ -13,7 +14,7 @@ func init() {
 	projectCmd.AddCommand(projectListCmd)
 }
 
-var project = service.Project{}
+var projects = service.Projects{}
 
 var projectCmd = &cobra.Command{
 	Use:   "project",
@@ -40,8 +41,24 @@ var projectListCmd = &cobra.Command{
 			return
 		}
 
-		response := project.List(ctx)
+		type ProjectListResponse []struct {
+			Id   int    `json:"id"`
+			Name string `json:"name"`
+		}
 
-		response.Dump()
+		rawResponse := projects.ListProjects(ctx)
+
+		var response ProjectListResponse
+		err := json.Unmarshal([]byte(rawResponse), &response)
+		if err != nil {
+			panic(err)
+		}
+
+		prettyJSON, err := json.MarshalIndent(response, "", "  ")
+		if err != nil {
+			panic(err)
+		}
+
+		println(string(prettyJSON))
 	},
 }

@@ -15,6 +15,9 @@ type SpecOperation struct {
 	Tags        []string `json:"tags"`
 	// Parameters  []struct{}          `json:"parameters"`
 	// Responses   map[string]struct{} `json:"responses"`
+
+	Path string
+	Method string
 }
 
 type Spec struct {
@@ -60,6 +63,10 @@ func (spec *Spec) parseServices() {
 	for path, methods := range spec.Paths {
 		for method, _ := range methods {
 			model := spec.Paths[path][method]
+
+			model.Path = path
+			model.Method = method
+
 			service := spec.TagToService[model.Tags[0]]
 
 			if service == "" {
