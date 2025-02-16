@@ -10,8 +10,6 @@ type {{ .Service }} struct{}
 // {{ .Summary }}
 func (s *{{ $.Service }}) {{ capitalize .OperationId }} (ctx *core.Context, {{ renderArguments .Arguments ", " }}) string {
     var body = make(map[string]string)
-	{{ range .Arguments }}
-	body["{{ . }}"] = _{{ . }}{{ end }}
 	
 	rawResponse, err := ctx.Client.{{ capitalize .Method }}("{{ .Path }}", body)
 	if err != nil {

@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	"github.com/diegiwg/devopness-cli/core"
-	service "github.com/diegiwg/devopness-cli/generated"
+	"github.com/diegiwg/devopness-cli/generated/services"
 	"github.com/spf13/cobra"
 )
 
