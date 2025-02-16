@@ -18,8 +18,14 @@ type SpecOperation struct {
 }
 
 type Spec struct {
-	Paths    map[string]map[string]SpecOperation `json:"paths"`
-	Services map[string][]SpecOperation
+	Paths         map[string]map[string]SpecOperation `json:"paths"`
+	ServiceGroups []struct {
+		Name string   `json:"name"`
+		Tags []string `json:"tags"`
+	} `json:"x-tagGroups"`
+
+	Services     map[string][]SpecOperation
+	TagToService map[string]string
 }
 
 func LoadSpecFromFile(filePath string) Spec {
@@ -28,97 +34,42 @@ func LoadSpecFromFile(filePath string) Spec {
 		panic(err)
 	}
 
-	var spec Spec
+	var spec = Spec{
+		Services:     map[string][]SpecOperation{},
+		TagToService: map[string]string{},
+	}
+
 	err = json.Unmarshal(content, &spec)
 	if err != nil {
 		panic(err)
+	}
+
+	// Parse Service Groups to TagToService
+	for _, serviceGroup := range spec.ServiceGroups {
+		for _, tag := range serviceGroup.Tags {
+			spec.TagToService[tag] = serviceGroup.Name
+		}
 	}
 
 	return spec
 }
 
 func (spec *Spec) parseServices() {
-	var tagToService map[string]string = map[string]string{
-		"Actions":                "action",
-		"Actions - Logs":         "action",
-		"Environments - Actions": "action",
-		"Projects - Actions":     "action",
-
-		"Applications":                "application",
-		"Applications - Deployments":  "application",
-		"Applications - Hooks":        "application",
-		"Applications - Variables":    "application",
-		"Environments - Applications": "application",
-
-		"Credentials":                "credential",
-		"Credentials - Repositories": "credential",
-		"Environments - Credentials": "credential",
-
-		"Cron Jobs":                "cron-job",
-		"Environments - Cron Jobs": "cron-job",
-
-		"Daemons":                "daemon",
-		"Environments - Daemons": "daemon",
-
-		"Environments":                     "environment",
-		"Projects - Environments":          "environment",
-		"Projects - Archived Environments": "environment",
-
-		"Hooks":            "hook",
-		"Hooks - Requests": "hook",
-		"Hook Requests":    "hook",
-
-		"Networks":                "network",
-		"Environments - Networks": "network",
-
-		"Network Rules":                "network-rule",
-		"Environments - Network Rules": "network-rule",
-
-		"Pipelines":           "pipeline",
-		"Pipelines - Actions": "pipeline",
-		"Pipelines - Hooks":   "pipeline",
-		"Pipelines - Steps":   "pipeline",
-
-		"Projects": "project",
-
-		"Resource Events": "resource-event",
-
-		"Resource Links": "resource-link",
-
-		"Roles":            "role",
-		"Projects - Roles": "role",
-
-		"Static Data - Application Options":              "static",
-		"Static Data - Cloud Provider Service Instances": "static",
-		"Static Data - Cloud Provider Services":          "static",
-		"Static Data - Credential Options":               "static",
-		"Static Data - Cron Job Options":                 "static",
-		"Static Data - Environment Options":              "static",
-		"Static Data - Network Rule Options":             "static",
-		"Static Data - Permissions":                      "static",
-		"Static Data - Resource Types":                   "static",
-		"Static Data - Server Options":                   "static",
-		"Static Data - Service Options":                  "static",
-		"Static Data - User Profile Options":             "static",
-		"Static Data - Virtual Host Options":             "static",
-	}
-
 	spec.Services = map[string][]SpecOperation{}
 
 	for path, methods := range spec.Paths {
 		for method, _ := range methods {
-			println(path, method)
-
 			model := spec.Paths[path][method]
-
-			service := tagToService[model.Tags[0]]
+			service := spec.TagToService[model.Tags[0]]
 
 			if service == "" {
 				println("Unknown tag: " + model.Tags[0])
 				continue
 			}
 
-			spec.Services[service] = append(spec.Services[service], model)
+			serviceName := strings.ReplaceAll(service, " ", "")
+
+			spec.Services[serviceName] = append(spec.Services[serviceName], model)
 		}
 	}
 
@@ -161,16 +112,6 @@ func TemplateToFile(templatePath string, filePath string, data interface{}) {
 				return s
 			}
 			return strings.ToUpper(string(s[0])) + s[1:]
-		},
-
-		"camelCase": func(input string) string {
-			words := strings.Split(input, "-")
-
-			for i, word := range words {
-				words[i] = strings.ToUpper(string(word[0])) + word[1:]
-			}
-
-			return strings.Join(words, "")
 		},
 	}
 
