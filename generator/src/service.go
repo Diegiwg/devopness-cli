@@ -16,6 +16,7 @@ type ServiceOperation struct {
 }
 
 func (spec *Spec) ParseServices() {
+	println("Parsing services...")
 	spec.Services = map[string][]ServiceOperation{}
 
 	for path, methods := range spec.Paths {
@@ -33,7 +34,7 @@ func (spec *Spec) ParseServices() {
 
 			serviceId := spec.TagToService[model.Tags[0]]
 			if serviceId == "" {
-				println("Unknown tag: " + model.Tags[0])
+				// println("Unknown tag: " + model.Tags[0])
 				continue
 			}
 

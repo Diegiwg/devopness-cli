@@ -64,8 +64,8 @@ func (spec *Spec) ParseModel(name string, sModel SpecModel) *Model {
 		spec.parseString(name, sModel, model)
 
 	default:
-		println("Skipping model: " + name)
-		println("    Type: " + sModel.Type)
+		// println("Skipping model: " + name)
+		// println("    Type: " + sModel.Type)
 
 		model.Type = "unknown"
 	}
@@ -106,8 +106,8 @@ func (spec *Spec) ParseObjectProperty(name string, sModel SpecModel) ModelProper
 		prop.Type = "bool"
 
 	default:
-		println("Skipping model: " + name)
-		println("    Type: " + sModel.Type)
+		// println("Skipping model: " + name)
+		// println("    Type: " + sModel.Type)
 
 		prop.Type = "interface{}"
 	}
@@ -158,13 +158,13 @@ func (spec *Spec) parseEnum(name string, sModel SpecModel, model *Model) {
 }
 
 func (spec *Spec) parserOneOf(name string, sModel SpecModel, model *Model) {
-	println("Parsing oneOf: " + name)
+	// println("Parsing oneOf: " + name)
 
 	model.Type = "oneof"
 
-	for _, oneOf := range sModel.OneOf {
-		println("    " + spec.parseRef(oneOf.Ref))
-	}
+	// for _, oneOf := range sModel.OneOf {
+	// 	println("    " + spec.parseRef(oneOf.Ref))
+	// }
 }
 
 func (spec *Spec) parseRef(name string) string {

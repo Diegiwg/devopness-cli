@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"encoding/json"
 	"fmt"
 
 	"github.com/diegiwg/devopness-cli/core"
@@ -48,12 +47,11 @@ var projectListCmd = &cobra.Command{
 			return
 		}
 
-		prettyJSON, err := json.MarshalIndent(response, "", "  ")
-		if err != nil {
-			fmt.Printf("Error marshaling JSON: %v\n", err)
-			return
+		println("Projects:")
+		for _, project := range *response {
+			// You can access each ProjectRelation here
+			println("\tID: " + fmt.Sprint(project.Id))
+			println("\tName: " + project.Name)
 		}
-
-		fmt.Println(string(prettyJSON))
 	},
 }
