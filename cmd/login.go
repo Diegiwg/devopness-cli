@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 	"log"
@@ -45,36 +44,23 @@ var loginCmd = &cobra.Command{
 		ctx := core.NewContext()
 		user := service.Users{}
 
-		response := user.LoginUser(ctx, model.UserLogin{Email: email, Password: password})
+		response, _ := user.LoginUser(ctx, model.UserLogin{Email: email, Password: password})
 
 		// Check for empty response
-		if response == "" {
+		if response == nil {
 			return errors.New("empty response from login API")
 		}
 
-		// Define structure to parse JSON response
-		var respData struct {
-			TokenType    string `json:"token_type"`
-			AccessToken  string `json:"access_token"`
-			RefreshToken string `json:"refresh_token"`
-			ExpiresIn    int    `json:"expires_in"`
-		}
-
-		// Decode JSON response
-		if err := json.Unmarshal([]byte(response), &respData); err != nil {
-			return fmt.Errorf("failed to parse login response: %w", err)
-		}
-
 		// Ensure required fields are present
-		if respData.AccessToken == "" || respData.RefreshToken == "" {
+		if response.AccessToken == "" || response.RefreshToken == "" {
 			return errors.New("invalid response: missing authentication tokens")
 		}
 
 		// Update authentication context
-		ctx.Client.Auth.TokenType = respData.TokenType
-		ctx.Client.Auth.AccessToken = respData.AccessToken
-		ctx.Client.Auth.RefreshToken = respData.RefreshToken
-		ctx.Client.Auth.ExpiresIn = respData.ExpiresIn
+		ctx.Client.Auth.TokenType = response.TokenType
+		ctx.Client.Auth.AccessToken = response.AccessToken
+		ctx.Client.Auth.RefreshToken = response.RefreshToken
+		ctx.Client.Auth.ExpiresIn = response.ExpiresIn
 
 		ctx.Authenticated = true
 

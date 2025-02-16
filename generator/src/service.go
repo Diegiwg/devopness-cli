@@ -99,7 +99,6 @@ func (spec *Spec) GetRequestReturns(operation SpecOperation) ([]string, string) 
 				continue
 			}
 
-			// Assign the type as "model.<ref>" (if applicable)
 			Type := "model." + spec.parseRef(content.Schema.Ref)
 			returns[Type] = append(returns[Type], code)
 		}
@@ -135,18 +134,27 @@ func (spec *Spec) GetRequestReturns(operation SpecOperation) ([]string, string) 
 	var functionReturns string = ""
 	for iType, Type := range onlyTypes {
 		for _, Code := range returns[Type] {
+			functionReturns += "\tif responseCode == " + Code + " {\n"
 			
+			innerType := Type
+			if Type != "string" {
+				innerType = strings.Replace(innerType, "model.", "", 1)
+			}
+			
+			functionReturns += "\t\tvar " + innerType
+			functionReturns += " " + Type + "\n"
 
-			functionReturns += "\tif responseCode == " + Code + " {\n\t\treturn "
+			functionReturns += "\t\tjson.Unmarshal([]byte(responseBody), &" + innerType + ")\n"
 
-			// for len(uniqueTypes)
+			functionReturns += "\t\treturn "
+
 			for i := 0;  i < len(onlyTypes); i++ {
 				if i > 0 && i < len(onlyTypes) {
 					functionReturns += ", "
 				}
 
 				if i == iType {
-					functionReturns += "&"+Type+"{}"
+					functionReturns += "&"+innerType
 				} else {
 					functionReturns += "nil"
 				}
@@ -154,6 +162,15 @@ func (spec *Spec) GetRequestReturns(operation SpecOperation) ([]string, string) 
 
 			functionReturns += "\n\t}\n\n"
 		}
+	}
+
+	functionReturns += "\treturn "
+	for i, _ := range onlyTypes {
+		if i > 0 && i < len(onlyTypes) {
+			functionReturns += ", "
+		}
+
+		functionReturns += "nil"
 	}
 
 	return onlyTypes, functionReturns

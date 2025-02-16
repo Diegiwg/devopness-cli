@@ -41,24 +41,19 @@ var projectListCmd = &cobra.Command{
 			return
 		}
 
-		type ProjectListResponse []struct {
-			Id   int    `json:"id"`
-			Name string `json:"name"`
-		}
+		response := projects.ListProjects(ctx)
 
-		rawResponse := projects.ListProjects(ctx)
-
-		var response ProjectListResponse
-		err := json.Unmarshal([]byte(rawResponse), &response)
-		if err != nil {
-			panic(err)
+		if response == nil {
+			fmt.Println("Empty response from API")
+			return
 		}
 
 		prettyJSON, err := json.MarshalIndent(response, "", "  ")
 		if err != nil {
-			panic(err)
+			fmt.Printf("Error marshaling JSON: %v\n", err)
+			return
 		}
 
-		println(string(prettyJSON))
+		fmt.Println(string(prettyJSON))
 	},
 }

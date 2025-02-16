@@ -1,6 +1,8 @@
 package service
 
 import (
+	"encoding/json"
+
 	"github.com/diegiwg/devopness-cli/core"
 	{{- if .ImportModels }}
 	model "github.com/diegiwg/devopness-cli/generated/models"
@@ -16,7 +18,11 @@ func (s *{{ $.Service }}) {{ capitalize .OperationId }} (ctx *core.Context{{- if
 	var body interface{} = nil
 	{{- end }}
 
+	{{- if .RequestReturnsTypes }}
 	responseCode, responseBody := ctx.Client.{{ capitalize .Method }}("{{ .Path }}", body)
+	{{- else }}
+	ctx.Client.{{ capitalize .Method }}("{{ .Path }}", body)	
+	{{- end }}
 
 {{ .RequestReturns }}
 }
