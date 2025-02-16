@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"net/url"
 	"strings"
 	"time"
 )
@@ -69,37 +68,21 @@ func (r *API) performRequest(method, finalURL string, reqBody string) (string, e
 }
 
 // Performs a DELETE request to remove a resource.
-func (r *API) Delete(path string, params map[string]string) (string, error) {
+func (r *API) Delete(path string, params interface{}) (string, error) {
 	finalURL := fmt.Sprintf("https://%s%s", r.Host, path)
-
-	if params != nil {
-		queryParams := make(url.Values)
-		for k, v := range params {
-			queryParams.Add(k, v)
-		}
-		finalURL += "?" + queryParams.Encode()
-	}
 
 	return r.performRequest(http.MethodDelete, finalURL, "")
 }
 
 // Performs a GET request with optional query parameters.
-func (r *API) Get(path string, params map[string]string) (string, error) {
+func (r *API) Get(path string, params interface{}) (string, error) {
 	finalURL := fmt.Sprintf("https://%s%s", r.Host, path)
-
-	if params != nil {
-		queryParams := make(url.Values)
-		for k, v := range params {
-			queryParams.Add(k, v)
-		}
-		finalURL += "?" + queryParams.Encode()
-	}
 
 	return r.performRequest(http.MethodGet, finalURL, "")
 }
 
 // Performs a POST request with a JSON body.
-func (r *API) Post(path string, body map[string]string) (string, error) {
+func (r *API) Post(path string, body interface{}) (string, error) {
 	finalURL := fmt.Sprintf("https://%s%s", r.Host, path)
 
 	jsonData, err := json.Marshal(body)
@@ -111,7 +94,7 @@ func (r *API) Post(path string, body map[string]string) (string, error) {
 }
 
 // Performs a PUT request to update a resource.
-func (r *API) Put(path string, body map[string]string) (string, error) {
+func (r *API) Put(path string, body interface{}) (string, error) {
 	finalURL := fmt.Sprintf("https://%s%s", r.Host, path)
 
 	jsonData, err := json.Marshal(body)

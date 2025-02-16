@@ -2,15 +2,18 @@ package service
 
 import (
 	"github.com/diegiwg/devopness-cli/core"
+	model "github.com/diegiwg/devopness-cli/generated/models"
 )
 
 type {{ .Service }} struct{}
 
 {{ range .Operations }}
 // {{ .Summary }}
-func (s *{{ $.Service }}) {{ capitalize .OperationId }} (ctx *core.Context, {{ renderArguments .Arguments ", " }}) string {
-    var body = make(map[string]string)
-	
+func (s *{{ $.Service }}) {{ capitalize .OperationId }} (ctx *core.Context{{- if .RequestBody }}, body model.{{ .RequestBody }} {{ end }}) string {
+	{{- if (eq .RequestBody "") }}
+	var body interface{} = nil
+	{{- end }}
+
 	rawResponse, err := ctx.Client.{{ capitalize .Method }}("{{ .Path }}", body)
 	if err != nil {
 		panic(err)

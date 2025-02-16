@@ -18,9 +18,8 @@ func main() {
 	spec := generator.LoadSpecFromFile("generator/spec.json")
 
 	spec.ParseModels()
-	spec.DumpModels("generated/models/spec.json")
 	spec.GenerateModels()
 
-	// spec.ParseServices()
-	// spec.GenerateServices()
+	spec.ParseServices()
+	spec.GenerateServices()
 }

@@ -20,10 +20,6 @@ type SpecOperation struct {
 	// Parameters  []struct{}          `json:"parameters"`
 	// Responses   map[string]struct{} `json:"responses"`
 	RequestBody SpecRequestBody `json:"requestBody,omitempty"`
-
-	Path      string
-	Method    string
-	Arguments map[string]string
 }
 
 type Spec struct {
@@ -38,10 +34,9 @@ type Spec struct {
 		Schemas map[string]SpecModel `json:"schemas"`
 	} `json:"components"`
 
-	Services     map[string][]SpecOperation
+	Services     map[string][]ServiceOperation
 	TagToService map[string]string
-
-	Models map[string]Model
+	Models       map[string]Model
 }
 
 func LoadSpecFromFile(filePath string) Spec {
@@ -51,10 +46,9 @@ func LoadSpecFromFile(filePath string) Spec {
 	}
 
 	var spec = Spec{
-		Services:     map[string][]SpecOperation{},
+		Services:     map[string][]ServiceOperation{},
 		TagToService: map[string]string{},
-
-		Models: map[string]Model{},
+		Models:       map[string]Model{},
 	}
 
 	err = json.Unmarshal(content, &spec)

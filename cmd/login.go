@@ -7,6 +7,7 @@ import (
 	"log"
 
 	"github.com/diegiwg/devopness-cli/core"
+	"github.com/diegiwg/devopness-cli/generated/models"
 	"github.com/diegiwg/devopness-cli/generated/services"
 	"github.com/spf13/cobra"
 )
@@ -44,7 +45,7 @@ var loginCmd = &cobra.Command{
 		ctx := core.NewContext()
 		user := service.Users{}
 
-		response := user.LoginUser(ctx, email, password)
+		response := user.LoginUser(ctx, model.UserLogin{Email: email, Password: password})
 
 		// Check for empty response
 		if response == "" {

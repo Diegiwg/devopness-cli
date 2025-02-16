@@ -8,9 +8,10 @@ import (
 
 type SpecModel struct {
 	Type       string               `json:"type"`
+	Required   []string             `json:"required,omitempty"`
 	Properties map[string]SpecModel `json:"properties,omitempty"`
 	Enum       []string             `json:"enum,omitempty"`
-	Required   []string             `json:"required,omitempty"`
+	Items      *SpecModel           `json:"items,omitempty"`
 
 	OneOf []struct {
 		Ref string `json:"$ref"`
@@ -20,10 +21,12 @@ type SpecModel struct {
 }
 
 type Model struct {
-	Name       string
-	Type       string
+	Name string
+	Type string
+
+	ArrayType  string
+	EnumValues []string
 	Properties []ModelProperty
-	Values     []string
 }
 
 type ModelProperty struct {
@@ -59,9 +62,12 @@ func (spec *Spec) ParseModel(name string, sModel SpecModel) *Model {
 		spec.parseArray(name, sModel, model)
 	case "string":
 		spec.parseString(name, sModel, model)
+
 	default:
 		println("Skipping model: " + name)
 		println("    Type: " + sModel.Type)
+
+		model.Type = "unknown"
 	}
 
 	return model
@@ -69,6 +75,8 @@ func (spec *Spec) ParseModel(name string, sModel SpecModel) *Model {
 
 func (spec *Spec) parseObject(name string, sModel SpecModel, model *Model) {
 	// println("Parsing object: " + name)
+
+	model.Type = "object"
 
 	for name, rawProp := range sModel.Properties {
 		prop := spec.ParseObjectProperty(name, rawProp)
@@ -81,8 +89,30 @@ func (spec *Spec) ParseObjectProperty(name string, sModel SpecModel) ModelProper
 
 	var prop = ModelProperty{
 		Name: name,
-		Type: sModel.Type,
 	}
+
+	switch sModel.Type {
+	case "object":
+		prop.Type = "interface{} // object"
+	case "array":
+		prop.Type = "[]interface{} // array"
+	case "string":
+		prop.Type = "string"
+	case "integer":
+		prop.Type = "int64"
+	case "number":
+		prop.Type = "float64"
+	case "boolean":
+		prop.Type = "bool"
+
+	default:
+		println("Skipping model: " + name)
+		println("    Type: " + sModel.Type)
+
+		prop.Type = "interface{} // unknown"
+	}
+
+	// TODO: proper handler this props
 
 	if sModel.Ref != "" {
 		prop.Ref = spec.parseRef(sModel.Ref)
@@ -95,13 +125,23 @@ func (spec *Spec) parseArray(name string, sModel SpecModel, model *Model) {
 	// println("Parsing array: " + name)
 
 	model.Type = "array"
+
+	if sModel.Items == nil {
+		panic("Array items is nil " + name)
+	}
+
+	if sModel.Items.Ref != "" {
+		model.ArrayType = spec.parseRef(sModel.Items.Ref)
+	} else {
+		model.ArrayType = "interface{}"
+	}
 }
 
 func (spec *Spec) parseString(name string, sModel SpecModel, model *Model) {
 	// println("Parsing string: " + name)
 
 	model.Type = "string"
-	
+
 	if sModel.Enum != nil {
 		spec.parseEnum(name, sModel, model)
 	}
@@ -113,14 +153,14 @@ func (spec *Spec) parseEnum(name string, sModel SpecModel, model *Model) {
 
 	model.Type = "enum"
 	for _, enum := range sModel.Enum {
-		model.Values = append(model.Values, enum)
+		model.EnumValues = append(model.EnumValues, enum)
 	}
 }
 
 func (spec *Spec) parserOneOf(name string, sModel SpecModel, model *Model) {
 	println("Parsing oneOf: " + name)
 
-	model.Type = "interface{}"
+	model.Type = "oneof"
 
 	for _, oneOf := range sModel.OneOf {
 		println("    " + spec.parseRef(oneOf.Ref))
