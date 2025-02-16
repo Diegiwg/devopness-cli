@@ -1,2 +1,26 @@
 package model
 
+{{ if eq .Model.Type "string" }}
+type {{ .Model.Name }} string
+{{ end }}
+
+{{ if eq .Model.Type "enum" }}
+type {{ .Model.Name }} int
+
+const (
+{{ range .Model.Values }}
+    {{ $.Model.Name }}{{ camelcase . }} {{ $.Model.Name }} = iota
+{{ end }}
+)
+
+func (s {{ .Model.Name }}) String() string {
+    switch s {
+    {{ range .Model.Values }}
+    case {{ $.Model.Name }}{{ camelcase . }}:
+        return "{{ . }}"
+    {{ end }}
+    default:
+        return "Unknown"
+    }
+}
+{{ end}}
