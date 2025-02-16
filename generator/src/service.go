@@ -1,6 +1,7 @@
 package generator
 
 import (
+	"sort"
 	"strings"
 )
 
@@ -110,13 +111,7 @@ func (spec *Spec) GetRequestReturns(operation SpecOperation) ([]string, string) 
 
 	// Sort the Http Codes
 	for _, codes := range returns {
-		for i := 0; i < len(codes); i++ {
-			for j := i + 1; j < len(codes); j++ {
-				if codes[i] > codes[j] {
-					codes[i], codes[j] = codes[j], codes[i]
-				}
-			}
-		}
+		sort.Strings(codes)
 	}
 
 	uniqueTypes := make(map[string]struct{})
@@ -130,6 +125,9 @@ func (spec *Spec) GetRequestReturns(operation SpecOperation) ([]string, string) 
 	for typeName := range uniqueTypes {
 		onlyTypes = append(onlyTypes, typeName)
 	}
+
+	// Sort the Types
+	sort.Strings(onlyTypes)
 
 	var functionReturns string = ""
 	for iType, Type := range onlyTypes {

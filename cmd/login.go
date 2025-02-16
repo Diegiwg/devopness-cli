@@ -44,7 +44,7 @@ var loginCmd = &cobra.Command{
 		ctx := core.NewContext()
 		user := service.Users{}
 
-		response, _ := user.LoginUser(ctx, model.UserLogin{Email: email, Password: password})
+		_, response := user.LoginUser(ctx, model.UserLogin{Email: email, Password: password})
 
 		// Check for empty response
 		if response == nil {
