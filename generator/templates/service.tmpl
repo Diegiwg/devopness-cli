@@ -16,12 +16,8 @@ func (s *{{ $.Service }}) {{ capitalize .OperationId }} (ctx *core.Context{{- if
 	var body interface{} = nil
 	{{- end }}
 
-	responseCode, respondeBody := ctx.Client.{{ capitalize .Method }}("{{ .Path }}", body)
+	responseCode, responseBody := ctx.Client.{{ capitalize .Method }}("{{ .Path }}", body)
 
-	{{- range .RequestReturns }}
-	if responseCode == {{ .Code }} {
-		return &model.{{ .Type }}{}, nil
-	}
-	{{- end }}
+{{ .RequestReturns }}
 }
 {{ end }}

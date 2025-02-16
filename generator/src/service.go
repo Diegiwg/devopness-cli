@@ -5,15 +5,12 @@ import (
 )
 
 type ServiceOperation struct {
-	Path           string
-	Method         string
-	Summary        string
-	OperationId    string
-	RequestBody    string
-	RequestReturns []struct {
-		Type string
-		Code string
-	}
+	Path                string
+	Method              string
+	Summary             string
+	OperationId         string
+	RequestBody         string
+	RequestReturns      string
 	RequestReturnsTypes []string
 }
 
@@ -84,10 +81,7 @@ func (spec *Spec) GetRequestBody(operation SpecOperation) string {
 	return ""
 }
 
-func (spec *Spec) GetRequestReturns(operation SpecOperation) ([]string, []struct {
-	Type string
-	Code string
-}) {
+func (spec *Spec) GetRequestReturns(operation SpecOperation) ([]string, string) {
 	returns := make(map[string][]string)
 
 	for code, ref := range operation.Responses {
@@ -112,34 +106,55 @@ func (spec *Spec) GetRequestReturns(operation SpecOperation) ([]string, []struct
 	}
 
 	if len(returns) == 0 {
-		return nil, nil
+		return nil, ""
 	}
 
-	typeWithCode := make([]struct {
-		Type string
-		Code string
-	}, 0, len(returns))
-
-	uniqueTypes := make(map[string]struct{})
-
-	for Type, codes := range returns {
-		for _, code := range codes {
-			uniqueTypes[Type] = struct{}{}
-
-			typeWithCode = append(typeWithCode, struct {
-				Type string
-				Code string
-			}{
-				Type: Type,
-				Code: code,
-			})
+	// Sort the Http Codes
+	for _, codes := range returns {
+		for i := 0; i < len(codes); i++ {
+			for j := i + 1; j < len(codes); j++ {
+				if codes[i] > codes[j] {
+					codes[i], codes[j] = codes[j], codes[i]
+				}
+			}
 		}
 	}
 
+	uniqueTypes := make(map[string]struct{})
+	for Type, codes := range returns {
+		for _, _ = range codes {
+			uniqueTypes[Type] = struct{}{}
+		}
+	}
+	
 	onlyTypes := make([]string, 0, len(uniqueTypes))
 	for typeName := range uniqueTypes {
 		onlyTypes = append(onlyTypes, typeName)
 	}
 
-	return onlyTypes, typeWithCode
+	var functionReturns string = ""
+	for iType, Type := range onlyTypes {
+		for _, Code := range returns[Type] {
+			
+
+			functionReturns += "\tif responseCode == " + Code + " {\n\t\treturn "
+
+			// for len(uniqueTypes)
+			for i := 0;  i < len(onlyTypes); i++ {
+				if i > 0 && i < len(onlyTypes) {
+					functionReturns += ", "
+				}
+
+				if i == iType {
+					functionReturns += "&"+Type+"{}"
+				} else {
+					functionReturns += "nil"
+				}
+			}
+
+			functionReturns += "\n\t}\n\n"
+		}
+	}
+
+	return onlyTypes, functionReturns
 }
